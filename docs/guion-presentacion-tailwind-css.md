@@ -339,3 +339,520 @@ Si aparece una pregunta tecnica inesperada, una buena forma de responder es volv
 1. Tailwind genera CSS estatico a partir de clases detectadas.
 2. La semantica de negocio debe vivir en componentes y HTML accesible.
 3. La escalabilidad depende de tokens, convenciones y revisiones de equipo.
+
+# Agregado: Explicacion Del Refactor Del Codigo
+
+Esta seccion sirve para explicar que se hizo tecnicamente en el repositorio despues de pasar de una demo inicial a una version mas cercana a produccion.
+
+La idea central del refactor fue separar responsabilidades. Antes, los archivos HTML tenian configuracion de Tailwind, estilos y JavaScript directamente dentro del documento. Eso funcionaba para una demo rapida, pero no era ideal para una defensa donde se evalua arquitectura. Ahora el HTML describe la estructura, `styles.css` contiene el sistema visual procesado por Tailwind y `app.js` contiene todo el comportamiento interactivo.
+
+## 1. Estructura General Del Proyecto
+
+Se agregaron y organizaron estos archivos:
+
+```text
+index.html
+tailwind-css-presentacion.html
+tailwind-analytics-dashboard-demo.html
+styles.css
+app.js
+dist/styles.css
+package.json
+package-lock.json
+.gitignore
+```
+
+`index.html` funciona como punto de entrada del proyecto. Desde ahi se puede abrir la presentacion o el dashboard. Esto ayuda a que el repositorio se vea como una entrega completa, no como dos archivos sueltos.
+
+`tailwind-css-presentacion.html` quedo como el deck de diapositivas. Su responsabilidad es declarar contenido semantico: `header`, `nav`, `main`, `article`, `section`, `aside` y `footer`.
+
+`tailwind-analytics-dashboard-demo.html` quedo como la demo interactiva. Tambien usa HTML semantico y atributos accesibles para tabs, filtros, formularios, tablas y navegacion.
+
+`styles.css` es la entrada real de Tailwind. Alli se definen tokens, variantes, estilos base, componentes y utilidades propias.
+
+`app.js` concentra toda la logica de interaccion: tema claro/oscuro, navegacion de slides, notas del orador, pantalla completa, filtros, tabs, busqueda, exportacion simulada y mensajes accesibles.
+
+`dist/styles.css` es el CSS compilado. Es el archivo que consumen los HTML en el navegador.
+
+`package.json` agrega scripts para compilar Tailwind y levantar el servidor local.
+
+`.gitignore` evita subir `node_modules`, que es una carpeta generada por npm.
+
+## 2. Que Cambio En Los HTML
+
+El cambio mas importante fue eliminar todo lo que no pertenecia al HTML.
+
+Se quitaron:
+
+```html
+<script>
+  // logica dentro del HTML
+</script>
+
+<style type="text/tailwindcss">
+  /* configuracion dentro del HTML */
+</style>
+
+style="height: 52%"
+```
+
+Tambien se evitaron manejadores inline como:
+
+```html
+onclick="..."
+onchange="..."
+oninput="..."
+```
+
+Ahora los documentos solo enlazan recursos externos:
+
+```html
+<script src="./app.js"></script>
+<link rel="stylesheet" href="./dist/styles.css?v=20260621" />
+```
+
+La version en el `href` del CSS ayuda a evitar cache durante la defensa. Si se recompila el CSS, el navegador tiene una senal clara para pedir la version nueva.
+
+Otra mejora fue usar marcas semanticas. En vez de depender de contenedores genericos, la estructura comunica intencion:
+
+```html
+<header>
+  <nav></nav>
+</header>
+
+<main>
+  <article></article>
+  <section></section>
+</main>
+
+<footer></footer>
+```
+
+En la presentacion, cada diapositiva es un `article` porque representa una unidad independiente de contenido. Las notas del orador viven en un `aside` porque complementan el contenido principal.
+
+En el dashboard, el panel lateral es un `aside`, la zona principal es `main`, los KPIs son `article`, la tabla tiene `caption`, `thead`, `tbody`, `th scope="col"` y `th scope="row"`.
+
+## 3. Que Cambio En `styles.css`
+
+`styles.css` demuestra el modelo moderno de Tailwind CSS v4.
+
+En Tailwind v3 se usaban normalmente estas directivas:
+
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+En Tailwind v4 el modelo recomendado es CSS-first:
+
+```css
+@import "tailwindcss";
+```
+
+Despues se declaran las fuentes que Tailwind debe escanear:
+
+```css
+@source "./*.html";
+@source "./app.js";
+```
+
+Esto es importante porque el motor de Tailwind necesita detectar clases completas en los archivos fuente para generar el CSS final.
+
+Tambien se define la variante de modo oscuro:
+
+```css
+@custom-variant dark (&:where(.dark, .dark *));
+```
+
+Con esto, las clases `dark:*` dependen de que exista una clase `.dark` en el elemento raiz. JavaScript solo cambia el estado; Tailwind decide como se ve ese estado.
+
+Los tokens visuales viven en `@theme`:
+
+```css
+@theme {
+  --color-brand-500: #06b6d4;
+  --color-risk-700: #be123c;
+  --color-focus: #f59e0b;
+  --shadow-panel: 0 18px 50px -30px rgb(15 23 42 / 0.45);
+}
+```
+
+La ventaja de esto es que los colores no se nombran por pantalla, sino por intencion. Por ejemplo, `brand`, `success`, `risk` y `focus` explican el rol visual dentro del sistema.
+
+Luego se usan capas:
+
+```css
+@layer base {}
+@layer components {}
+@layer utilities {}
+```
+
+En `@layer base` se definieron reglas globales de bajo nivel: fondo, color de texto, tipografia, seleccion de texto, foco visible y reduccion de movimiento.
+
+El foco visible es clave para accesibilidad:
+
+```css
+button,
+input,
+select,
+a {
+  @apply focus-visible:outline-none focus-visible:ring-4;
+}
+```
+
+Esto garantiza que los usuarios que navegan con teclado puedan ver donde estan.
+
+En `@layer components` se agruparon clases semanticas reutilizables, como:
+
+```css
+.button
+.button-primary
+.button-secondary
+.site-header
+.deck-slide
+.surface-card
+.dashboard-sidebar
+.tab-button
+.metric-card
+```
+
+Esto evita repetir cadenas enormes de utilidades cuando el patron ya tiene una intencion estable.
+
+En `@layer utilities` se agregaron utilidades puntuales:
+
+```css
+.text-balance
+.content-auto
+.animate-slide-in
+.animate-fade-in
+```
+
+Tambien se movieron animaciones a CSS:
+
+```css
+@keyframes slideIn {}
+@keyframes fadeIn {}
+```
+
+Una decision importante fue no usar `style="height: 52%"` en las barras del dashboard. En su lugar, se usan clases Tailwind:
+
+```html
+<span class="chart-bar-fill h-[52%]"></span>
+```
+
+Asi se mantiene la separacion de responsabilidades y Tailwind puede detectar el valor arbitrario como una clase real.
+
+## 4. Que Cambio En `app.js`
+
+`app.js` se diseno para sobrevivir cambios en vivo durante la defensa.
+
+La parte mas importante esta arriba del archivo:
+
+```js
+const LIVE_TUNING = Object.freeze({
+  theme: {},
+  deck: {},
+  dashboard: {},
+  messages: {},
+});
+```
+
+Esta es el area de modificacion rapida. Si el profesor pide cambiar una tecla, el slide inicial, un mensaje de error, el tab por defecto o el tiempo de exportacion, se modifica esa configuracion sin tocar el resto de la logica.
+
+Tambien se definio un objeto de selectores:
+
+```js
+const SELECTORS = Object.freeze({
+  shared: {},
+  deck: {},
+  dashboard: {},
+});
+```
+
+Esto evita tener selectores repartidos por todo el archivo. Si cambia un atributo en el HTML, se actualiza en un solo lugar.
+
+La aplicacion detecta que pagina esta abierta con:
+
+```js
+const pageName = root.dataset.app || "index";
+```
+
+Cada HTML declara su tipo:
+
+```html
+<html data-app="presentation">
+<html data-app="dashboard">
+```
+
+Gracias a eso, el mismo `app.js` puede inicializar solo la logica que corresponde a cada pagina.
+
+## 5. Tema Claro/Oscuro
+
+El tema se maneja agregando o quitando la clase `.dark` en el elemento raiz:
+
+```js
+root.classList.toggle("dark", shouldUseDark);
+```
+
+El estado se guarda en `localStorage`, pero con `try/catch` para evitar que el sitio falle si el navegador bloquea almacenamiento:
+
+```js
+try {
+  window.localStorage.setItem(key, value);
+} catch (error) {
+  console.warn("No se pudo escribir localStorage.", error);
+}
+```
+
+Esta es una practica defensiva. En una demo academica muestra que se pensaron estados inesperados.
+
+## 6. Logica De La Presentacion
+
+La presentacion tiene un modulo propio dentro de `app.js`.
+
+Primero se capturan las diapositivas:
+
+```js
+const slides = Array.from(deck.querySelectorAll("[data-slide]"));
+```
+
+Luego se genera la navegacion de puntos automaticamente:
+
+```js
+buildSlideDots(dots, slides.length);
+```
+
+Esto significa que si se agrega una diapositiva nueva en vivo, no hay que escribir manualmente otro boton en el footer. El JavaScript lee la cantidad de slides y crea los controles.
+
+La funcion principal es:
+
+```js
+function showSlide(index, options = {}) {}
+```
+
+Esa funcion:
+
+1. Calcula el indice correcto.
+2. Oculta las diapositivas inactivas.
+3. Muestra la diapositiva activa.
+4. Sincroniza las notas del orador.
+5. Actualiza los puntos de navegacion.
+6. Actualiza el contador.
+7. Opcionalmente mueve el foco a la diapositiva.
+
+Tambien se soportan atajos de teclado:
+
+```text
+ArrowRight / PageDown / Space: siguiente
+ArrowLeft / PageUp: anterior
+Home: primera diapositiva
+End: ultima diapositiva
+N: notas
+D: tema
+F: pantalla completa
+```
+
+Estos atajos estan en `LIVE_TUNING.deck.shortcuts`, por eso se pueden cambiar rapidamente.
+
+## 7. Notas Del Orador Y Focus Trap
+
+Las notas del orador se implementaron como un dialogo accesible:
+
+```html
+<aside role="dialog" aria-modal="true">
+```
+
+Cuando se abren las notas, el foco se mueve al boton "Cerrar". Cuando se cierran, el foco vuelve al elemento anterior.
+
+Tambien se implemento una trampa de foco:
+
+```js
+trapFocusInsideDialog(event, notesDialog, closeNotesCallback);
+```
+
+Esto evita que el usuario quede navegando con Tab por elementos detras del dialogo. Es importante para accesibilidad y para demostrar manejo de foco.
+
+## 8. Pantalla Completa
+
+La presentacion incluye modo de pantalla completa con la Fullscreen API:
+
+```js
+await root.requestFullscreen();
+await document.exitFullscreen();
+```
+
+Si el navegador no soporta esa API, el boton se deshabilita y se comunica el estado:
+
+```js
+fullscreenToggle.disabled = true;
+fullscreenToggle.textContent = "No disponible";
+```
+
+Esto demuestra manejo de capacidades del navegador y estados de error.
+
+## 9. Logica Del Dashboard
+
+El dashboard tiene tres interacciones principales: filtros, tabs y controles de formulario.
+
+El panel de filtros usa `aria-expanded`, `aria-hidden`, `data-state` e `inert`.
+
+```js
+filtersToggle.setAttribute("aria-expanded", String(shouldOpen));
+filtersPanel.dataset.state = shouldOpen ? "open" : "closed";
+filtersPanel.setAttribute("aria-hidden", String(!shouldOpen));
+filtersPanel.inert = !shouldOpen;
+```
+
+`inert` evita que el teclado entre a controles ocultos. Esto mejora accesibilidad porque no basta con ocultar visualmente un panel; tambien hay que evitar foco accidental.
+
+Los tabs usan el patron accesible de tablist:
+
+```html
+<nav role="tablist">
+  <button role="tab" aria-selected="true" aria-controls="panel-overview">
+</nav>
+```
+
+Cada panel esta enlazado con su tab:
+
+```html
+<section role="tabpanel" aria-labelledby="tab-overview">
+```
+
+El JavaScript aplica roving tabindex. Solo el tab activo queda con `tabIndex = 0`; los demas quedan en `-1`. Con flechas se cambia de tab:
+
+```text
+ArrowRight / ArrowDown
+ArrowLeft / ArrowUp
+Home
+End
+```
+
+Esto es mas accesible que hacer tabs que solo funcionan con click.
+
+El rango de confianza actualiza un `output`:
+
+```js
+output.textContent = `${range.value}%`;
+```
+
+La busqueda valida longitud minima antes de anunciar exito:
+
+```js
+if (query.length < LIVE_TUNING.dashboard.searchMinimumLength) {
+  announceDashboardStatus("Escribe al menos 2 caracteres para buscar.");
+}
+```
+
+El boton de exportacion simula un estado de proceso:
+
+```js
+exportButton.disabled = true;
+window.setTimeout(() => {
+  exportButton.disabled = false;
+}, LIVE_TUNING.dashboard.exportDelayMs);
+```
+
+Esto permite explicar como manejar estados asincronos sin framework.
+
+## 10. Accesibilidad Aplicada
+
+El refactor incluye varias decisiones de accesibilidad:
+
+1. Enlaces de salto al contenido principal.
+2. Foco visible global de alto contraste.
+3. HTML semantico.
+4. Botones reales para acciones.
+5. Enlaces reales para navegacion.
+6. Tablas con encabezados y `caption`.
+7. Tabs con roles ARIA correctos.
+8. Dialogo de notas con manejo de foco.
+9. `aria-live` para mensajes de estado.
+10. `inert` para evitar foco dentro de filtros cerrados.
+11. `prefers-reduced-motion` para usuarios sensibles al movimiento.
+12. Contraste alto en claro y oscuro.
+
+Una frase util para defender esto:
+
+> Tailwind no hace accesible una interfaz por si solo. Lo que hace es permitir expresar estados accesibles de forma consistente. La accesibilidad empieza en HTML semantico y manejo correcto del foco.
+
+## 11. Produccion Y Build
+
+Se agrego `package.json` con scripts:
+
+```json
+{
+  "build:css": "tailwindcss -i ./styles.css -o ./dist/styles.css --minify",
+  "watch:css": "tailwindcss -i ./styles.css -o ./dist/styles.css --watch",
+  "serve": "vite --host 127.0.0.1"
+}
+```
+
+`build:css` compila Tailwind y genera el CSS minificado.
+
+`watch:css` sirve para desarrollo, recompilando cuando cambian archivos.
+
+`serve` levanta un servidor local con Vite para probar el proyecto como sitio web real.
+
+Esta parte demuestra que ya no dependemos del CDN de Tailwind en el navegador. El resultado final es CSS estatico, compilado y cacheable.
+
+## 12. Como Explicarlo En La Defensa
+
+Una forma corta de presentarlo seria:
+
+> Refactorice la demo para separar estructura, presentacion y comportamiento. Los HTML ahora son documentos semanticos y accesibles. Tailwind vive en `styles.css` usando el modelo CSS-first de v4 con `@theme`, `@custom-variant`, `@source` y `@layer`. Toda la interaccion esta en `app.js`, con constantes de configuracion al inicio para poder modificar parametros rapidamente en vivo. Ademas, agregue controles accesibles de teclado, manejo de foco, estados ARIA, reduccion de movimiento y un build real que genera `dist/styles.css`.
+
+Si el profesor pregunta por que esto es mejor que la version inicial:
+
+> La version inicial era buena como prototipo, pero mezclaba responsabilidades. Esta version es mas mantenible porque cada archivo tiene una responsabilidad clara. Tambien es mas facil de modificar en vivo porque los parametros importantes estan centralizados, y es mas segura para accesibilidad porque los estados de UI estan sincronizados con atributos ARIA y manejo de foco.
+
+Si el profesor pide cambiar algo en vivo:
+
+1. Cambiar texto, orden o contenido: editar el HTML semantico.
+2. Cambiar colores, tokens, foco o componentes visuales: editar `styles.css`.
+3. Cambiar atajos, mensajes, tab inicial, slide inicial o tiempos: editar `LIVE_TUNING` en `app.js`.
+4. Si se agregan clases nuevas: ejecutar `npm.cmd run build:css`.
+
+## 13. Checklist Final De Rubrica
+
+Separacion de responsabilidades:
+
+```text
+HTML = estructura y contenido
+CSS = Tailwind, tokens, capas y estilos visuales
+JS = comportamiento e interaccion
+```
+
+HTML semantico:
+
+```text
+header, nav, main, section, article, aside, footer, figure, table
+```
+
+Accesibilidad:
+
+```text
+skip links, focus visible, aria-expanded, aria-selected, aria-live,
+role="tablist", role="tab", role="tabpanel", role="dialog", inert
+```
+
+Tailwind moderno:
+
+```text
+@import "tailwindcss"
+@source
+@theme
+@custom-variant
+@layer base/components/utilities
+```
+
+Preparacion para live coding:
+
+```text
+LIVE_TUNING
+SELECTORS centralizados
+funciones pequenas
+mensajes configurables
+controles generados dinamicamente
+```

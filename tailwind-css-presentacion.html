@@ -1,110 +1,72 @@
 <!doctype html>
-<!--
-  Presentacion visual autocontenida. Usa Tailwind CSS v4 en modo browser para
-  que el deck se pueda abrir como HTML estatico sin tooling adicional.
--->
-<html lang="es" class="scheme-light bg-stone-50 dark:bg-slate-950 dark:scheme-dark">
+<html lang="es" data-app="presentation" data-theme-storage="tw-deck-theme" class="bg-slate-50 dark:bg-slate-950">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Presentacion tecnica sobre Tailwind CSS para ISW-521." />
     <title>Presentacion Ejecutiva: Tailwind CSS</title>
-
-    <script>
-      const storedDeckTheme = localStorage.getItem("tw-deck-theme");
-      const prefersDeckDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-      document.documentElement.classList.toggle("dark", storedDeckTheme ? storedDeckTheme === "dark" : prefersDeckDark);
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
-    <style type="text/tailwindcss">
-      @custom-variant dark (&:where(.dark, .dark *));
-
-      @theme {
-        --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --color-brand-50: #ecfeff;
-        --color-brand-100: #cffafe;
-        --color-brand-500: #06b6d4;
-        --color-brand-600: #0891b2;
-        --color-brand-700: #0e7490;
-        --color-ink-950: #121212;
-        --shadow-slide: 0 24px 80px -48px rgb(15 23 42 / 0.55);
-      }
-
-      @keyframes slideIn {
-        from {
-          opacity: 0;
-          transform: translateY(10px);
-        }
-        to {
-          opacity: 1;
-          transform: translateY(0);
-        }
-      }
-    </style>
+    <script src="./app.js"></script>
+    <link rel="stylesheet" href="./dist/styles.css?v=20260621" />
   </head>
 
-  <!--
-    El body actua como shell de la presentacion: header fijo, area de slides y
-    footer de controles. No hay contenedores anonimos tipo div.
-  -->
-  <body class="min-h-screen bg-stone-50 text-ink-950 antialiased transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
-    <!--
-      Header sticky para mantener titulo, tema y toggle de notas disponibles
-      durante toda la navegacion del deck.
-    -->
-    <header class="sticky top-0 z-40 border-b border-stone-200 bg-stone-50/90 px-4 py-3 supports-[backdrop-filter:blur(0px)]:backdrop-blur-xl sm:px-6 lg:px-8 dark:border-slate-800 dark:bg-slate-950/88">
-      <nav class="mx-auto flex max-w-7xl flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" aria-label="Controles de la presentacion">
-        <a href="#deck" class="group inline-flex w-fit items-center gap-3 rounded-md focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 dark:focus-visible:ring-brand-700/50">
-          <span class="flex h-10 w-10 items-center justify-center rounded-lg bg-ink-950 text-sm font-black text-white shadow-slide transition-transform duration-300 group-hover:scale-105 dark:bg-brand-500 dark:text-slate-950">TW</span>
+  <body>
+    <a class="skip-link" href="#deck">Saltar a las diapositivas</a>
+
+    <header class="site-header">
+      <nav class="site-nav" aria-label="Controles de la presentacion">
+        <a class="brand-link group" href="#deck">
+          <span class="brand-mark" aria-hidden="true">TW</span>
           <span>
             <strong class="block text-sm leading-5">Tailwind CSS</strong>
-            <span class="block text-xs text-slate-500 dark:text-slate-400">Arquitectura, performance y patrones senior</span>
+            <span class="block text-xs text-slate-600 dark:text-slate-300">Arquitectura, performance y accesibilidad</span>
           </span>
         </a>
 
-        <ul class="flex flex-wrap items-center gap-2">
+        <ul class="site-actions">
           <li>
-            <button id="notesToggle" type="button" aria-pressed="false" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all duration-300 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-brand-700/40">Notas</button>
+            <button class="button button-secondary" type="button" data-action="toggle-notes" aria-expanded="false" aria-controls="speakerNotes" aria-pressed="false">Notas</button>
           </li>
           <li>
-            <button id="themeToggle" type="button" class="rounded-md bg-ink-950 px-3 py-2 text-sm font-semibold text-white shadow-sm transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:bg-brand-500 dark:text-slate-950 dark:focus-visible:ring-brand-700/40">Tema</button>
+            <button class="button button-primary" type="button" data-action="toggle-theme" aria-pressed="false">
+              <span data-theme-label>Tema</span>
+            </button>
           </li>
           <li>
-            <button id="fullscreenToggle" type="button" aria-pressed="false" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-medium text-slate-700 shadow-sm transition-all duration-300 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:bg-slate-800 dark:focus-visible:ring-brand-700/40">Pantalla completa</button>
+            <button class="button button-secondary" type="button" data-action="toggle-fullscreen" aria-pressed="false">Pantalla completa</button>
           </li>
           <li>
-            <a href="tailwind-analytics-dashboard-demo.html" class="inline-flex rounded-md border border-brand-500 bg-brand-50 px-3 py-2 text-sm font-semibold text-brand-700 transition-all duration-300 hover:bg-brand-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:border-brand-400 dark:bg-brand-500/15 dark:text-brand-100 dark:focus-visible:ring-brand-700/40">Abrir demo</a>
+            <a class="button button-secondary" href="./tailwind-analytics-dashboard-demo.html">Abrir demo</a>
           </li>
         </ul>
       </nav>
     </header>
 
-    <main id="deck" class="mx-auto grid max-w-7xl gap-4 px-4 py-5 sm:px-6 lg:px-8" tabindex="-1">
-      <!-- Slide 1 -->
-      <article class="slide grid min-h-[calc(100vh-11rem)] gap-8 rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:grid-cols-[1.05fr_0.95fr] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="0" aria-labelledby="slide-1-title">
+    <main id="deck" class="deck-main" data-deck tabindex="-1">
+      <article class="deck-slide" data-slide="0" data-layout="split" data-state="active" aria-labelledby="slide-1-title" tabindex="-1">
         <section class="flex flex-col justify-center">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Presentacion ejecutiva</p>
-          <h1 id="slide-1-title" class="mt-3 text-4xl font-black tracking-normal text-ink-950 sm:text-5xl lg:text-6xl dark:text-white">Tailwind CSS como API de diseno compilada</h1>
-          <p class="mt-5 max-w-2xl text-lg leading-8 text-slate-600 dark:text-slate-300">Utility-first no elimina arquitectura: la mueve a tokens, variantes, componentes y un pipeline de generacion que produce CSS estatico, predecible y pequeno.</p>
+          <p class="slide-kicker">Presentacion ejecutiva</p>
+          <h1 id="slide-1-title" class="slide-hero-title">Tailwind CSS como API de diseno compilada</h1>
+          <p class="slide-copy">
+            Utility-first no elimina arquitectura: la mueve a tokens, variantes, componentes y un pipeline que produce CSS estatico, predecible y pequeno.
+          </p>
           <ul class="mt-6 grid gap-3 sm:grid-cols-3">
-            <li class="rounded-lg border border-stone-200 bg-stone-50 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <strong class="block text-sm text-slate-500 dark:text-slate-400">Paradigma</strong>
+            <li class="surface-card-muted">
+              <strong class="block text-sm text-slate-600 dark:text-slate-300">Paradigma</strong>
               <span class="mt-1 block text-xl font-semibold">Utility-first</span>
             </li>
-            <li class="rounded-lg border border-stone-200 bg-stone-50 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <strong class="block text-sm text-slate-500 dark:text-slate-400">Motor</strong>
+            <li class="surface-card-muted">
+              <strong class="block text-sm text-slate-600 dark:text-slate-300">Motor</strong>
               <span class="mt-1 block text-xl font-semibold">JIT compiler</span>
             </li>
-            <li class="rounded-lg border border-stone-200 bg-stone-50 p-3 dark:border-slate-800 dark:bg-slate-950/70">
-              <strong class="block text-sm text-slate-500 dark:text-slate-400">Resultado</strong>
+            <li class="surface-card-muted">
+              <strong class="block text-sm text-slate-600 dark:text-slate-300">Resultado</strong>
               <span class="mt-1 block text-xl font-semibold">CSS usado</span>
             </li>
           </ul>
         </section>
 
-        <figure class="flex min-h-[420px] flex-col justify-center rounded-lg border border-slate-200 bg-slate-950 p-5 text-white dark:border-slate-700">
-          <figcaption class="mb-5 text-sm font-medium text-brand-100">Pipeline mental</figcaption>
+        <figure class="dark-panel flex min-h-[420px] flex-col justify-center">
+          <figcaption class="mb-5 text-sm font-semibold text-brand-100">Pipeline mental</figcaption>
           <ol class="grid gap-3">
             <li class="flex items-center gap-3 rounded-md bg-white/10 p-4">
               <span class="flex h-9 w-9 items-center justify-center rounded-md bg-brand-500 font-black text-slate-950">1</span>
@@ -122,309 +84,235 @@
         </figure>
       </article>
 
-      <!-- Slide 2 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="1" aria-labelledby="slide-2-title">
+      <article class="deck-slide" data-slide="1" data-state="inactive" aria-labelledby="slide-2-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Evolucion arquitectonica</p>
-          <h2 id="slide-2-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">BEM/OOCSS vs CSS-in-JS vs Utility-first</h2>
-          <p class="mt-3 text-slate-600 dark:text-slate-300">Cada enfoque optimiza una dimension distinta: semantica global, colocacion por componente o generacion por uso real.</p>
+          <p class="slide-kicker">Evolucion arquitectonica</p>
+          <h2 id="slide-2-title" class="slide-title">BEM/OOCSS vs CSS-in-JS vs Utility-first</h2>
+          <p class="slide-copy">Cada enfoque optimiza una dimension distinta: semantica global, colocacion por componente o generacion por uso real.</p>
         </header>
 
-        <figure class="mt-8 overflow-x-auto rounded-lg border border-stone-200 dark:border-slate-800">
-          <table class="min-w-full text-left text-sm">
-            <thead class="bg-stone-100 text-xs uppercase tracking-normal text-slate-600 dark:bg-slate-950 dark:text-slate-400">
+        <figure class="mt-8 overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-800">
+          <table class="comparison-table">
+            <caption class="sr-only">Comparacion de enfoques historicos para escalar CSS</caption>
+            <thead>
               <tr>
-                <th class="px-4 py-3 font-semibold">Enfoque</th>
-                <th class="px-4 py-3 font-semibold">Fortaleza</th>
-                <th class="px-4 py-3 font-semibold">Riesgo</th>
-                <th class="px-4 py-3 font-semibold">Costo operativo</th>
+                <th scope="col">Enfoque</th>
+                <th scope="col">Fortaleza</th>
+                <th scope="col">Riesgo</th>
+                <th scope="col">Costo operativo</th>
               </tr>
             </thead>
-            <tbody class="divide-y divide-stone-200 dark:divide-slate-800">
-              <tr class="transition-colors hover:bg-stone-50 dark:hover:bg-slate-950/70">
-                <th class="px-4 py-5 font-semibold">BEM / OOCSS</th>
-                <td class="px-4 py-5">Semantica estable, CSS plano</td>
-                <td class="px-4 py-5">Naming, especificidad acumulada</td>
-                <td class="px-4 py-5">Auditorias y refactors continuos</td>
+            <tbody>
+              <tr>
+                <th scope="row">BEM / OOCSS</th>
+                <td>Semantica estable, CSS plano</td>
+                <td>Naming, especificidad acumulada</td>
+                <td>Auditorias y refactors continuos</td>
               </tr>
-              <tr class="transition-colors hover:bg-stone-50 dark:hover:bg-slate-950/70">
-                <th class="px-4 py-5 font-semibold">CSS-in-JS</th>
-                <td class="px-4 py-5">Colocacion por componente, props dinamicas</td>
-                <td class="px-4 py-5">Runtime, SSR, hidratacion, vendor lock-in</td>
-                <td class="px-4 py-5">Costos de ejecucion y extraccion</td>
+              <tr>
+                <th scope="row">CSS-in-JS</th>
+                <td>Colocacion por componente, props dinamicas</td>
+                <td>Runtime, SSR, hidratacion, vendor lock-in</td>
+                <td>Costos de ejecucion y extraccion</td>
               </tr>
-              <tr class="transition-colors hover:bg-stone-50 dark:hover:bg-slate-950/70">
-                <th class="px-4 py-5 font-semibold">Utility-first</th>
-                <td class="px-4 py-5">CSS generado por uso real, baja especificidad</td>
-                <td class="px-4 py-5">Markup denso si no se componentea</td>
-                <td class="px-4 py-5">Gobierno de tokens y patrones</td>
+              <tr>
+                <th scope="row">Utility-first</th>
+                <td>CSS generado por uso real, baja especificidad</td>
+                <td>Markup denso si no se componentea</td>
+                <td>Gobierno de tokens y patrones</td>
               </tr>
             </tbody>
           </table>
         </figure>
       </article>
 
-      <!-- Slide 3 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="2" aria-labelledby="slide-3-title">
+      <article class="deck-slide" data-slide="2" data-state="inactive" aria-labelledby="slide-3-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Dolores mitigados</p>
-          <h2 id="slide-3-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">El problema real no era escribir CSS: era mantenerlo</h2>
+          <p class="slide-kicker">Dolores mitigados</p>
+          <h2 id="slide-3-title" class="slide-title">El problema real no era escribir CSS: era mantenerlo</h2>
         </header>
 
         <section class="mt-8 grid gap-4 lg:grid-cols-3" aria-label="Dolores de CSS tradicional">
-          <article class="rounded-lg border border-rose-200 bg-rose-50 p-5 dark:border-rose-500/30 dark:bg-rose-500/10">
-            <h3 class="text-xl font-bold text-rose-700 dark:text-rose-200">Bundle infinito</h3>
-            <p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">CSS tradicional tiende a crecer aunque el UI cambie. Las clases antiguas quedan vivas porque borrarlas puede romper pantallas no auditadas.</p>
-            <p class="mt-4 rounded-md bg-white p-3 text-sm font-medium text-rose-700 dark:bg-slate-950 dark:text-rose-200">Tailwind genera utilidades detectadas en archivos fuente.</p>
+          <article class="rounded-lg border border-rose-200 bg-rose-50 p-5 dark:border-rose-500/40 dark:bg-rose-500/10">
+            <h3 class="text-xl font-bold text-risk-700 dark:text-rose-100">Bundle infinito</h3>
+            <p class="mt-3 leading-7 text-slate-800 dark:text-slate-200">CSS tradicional tiende a crecer aunque el UI cambie. Las clases antiguas quedan vivas porque borrarlas puede romper pantallas no auditadas.</p>
+            <p class="mt-4 rounded-md bg-white p-3 text-sm font-semibold text-risk-700 dark:bg-slate-950 dark:text-rose-100">Tailwind genera utilidades detectadas en archivos fuente.</p>
           </article>
-          <article class="rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
-            <h3 class="text-xl font-bold text-amber-700 dark:text-amber-200">Especificidad rota</h3>
-            <p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">La cascada se vuelve una guerra entre selectores, orden de carga y excepciones. El siguiente cambio empieza con miedo.</p>
-            <p class="mt-4 rounded-md bg-white p-3 text-sm font-medium text-amber-700 dark:bg-slate-950 dark:text-amber-200">Utilities mantienen selectores planos y composables.</p>
+          <article class="rounded-lg border border-amber-200 bg-amber-50 p-5 dark:border-amber-500/40 dark:bg-amber-500/10">
+            <h3 class="text-xl font-bold text-amber-900 dark:text-amber-100">Especificidad rota</h3>
+            <p class="mt-3 leading-7 text-slate-800 dark:text-slate-200">La cascada se vuelve una guerra entre selectores, orden de carga y excepciones. El siguiente cambio empieza con miedo.</p>
+            <p class="mt-4 rounded-md bg-white p-3 text-sm font-semibold text-amber-900 dark:bg-slate-950 dark:text-amber-100">Utilities mantienen selectores planos y composables.</p>
           </article>
-          <article class="rounded-lg border border-brand-100 bg-brand-50 p-5 dark:border-brand-500/30 dark:bg-brand-500/10">
-            <h3 class="text-xl font-bold text-brand-700 dark:text-brand-100">Clases huerfanas</h3>
-            <p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Nombres semanticos envejecen mal: la clase sigue diciendo hero-primary aunque ya no sea hero ni primary.</p>
-            <p class="mt-4 rounded-md bg-white p-3 text-sm font-medium text-brand-700 dark:bg-slate-950 dark:text-brand-100">La semantica vive en componentes, no en nombres CSS globales.</p>
+          <article class="rounded-lg border border-brand-100 bg-brand-50 p-5 dark:border-brand-500/40 dark:bg-brand-500/10">
+            <h3 class="text-xl font-bold text-brand-800 dark:text-brand-100">Clases huerfanas</h3>
+            <p class="mt-3 leading-7 text-slate-800 dark:text-slate-200">Nombres semanticos envejecen mal: la clase sigue diciendo hero-primary aunque ya no sea hero ni primary.</p>
+            <p class="mt-4 rounded-md bg-white p-3 text-sm font-semibold text-brand-800 dark:bg-slate-950 dark:text-brand-100">La semantica vive en componentes, no en nombres CSS globales.</p>
           </article>
         </section>
       </article>
 
-      <!-- Slide 4 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="3" aria-labelledby="slide-4-title">
+      <article class="deck-slide" data-slide="3" data-state="inactive" aria-labelledby="slide-4-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Under the hood</p>
-          <h2 id="slide-4-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Como piensa el motor JIT</h2>
-          <p class="mt-3 text-slate-600 dark:text-slate-300">Tailwind no ejecuta tu app ni parsea JSX como AST de negocio; detecta candidatos de clase en texto fuente y genera CSS para ellos.</p>
+          <p class="slide-kicker">Under the hood</p>
+          <h2 id="slide-4-title" class="slide-title">Como piensa el motor JIT</h2>
+          <p class="slide-copy">Tailwind no ejecuta tu app ni parsea JSX como AST de negocio; detecta candidatos de clase en texto fuente y genera CSS para ellos.</p>
         </header>
 
-        <figure class="mt-8 rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-          <figcaption class="text-sm font-semibold text-slate-600 dark:text-slate-300">Pipeline de generacion</figcaption>
+        <figure class="surface-card-muted mt-8">
+          <figcaption class="text-sm font-semibold text-slate-700 dark:text-slate-200">Pipeline de generacion</figcaption>
           <ol class="mt-5 grid gap-3 md:grid-cols-5">
-            <li class="rounded-md bg-white p-4 shadow-sm dark:bg-slate-900">
-              <span class="text-xs font-bold text-brand-700 dark:text-brand-300">01</span>
-              <strong class="mt-2 block">Detectar fuentes</strong>
-              <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">HTML, JS, TSX, MDX</span>
-            </li>
-            <li class="rounded-md bg-white p-4 shadow-sm dark:bg-slate-900">
-              <span class="text-xs font-bold text-brand-700 dark:text-brand-300">02</span>
-              <strong class="mt-2 block">Extraer tokens</strong>
-              <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">clases completas</span>
-            </li>
-            <li class="rounded-md bg-white p-4 shadow-sm dark:bg-slate-900">
-              <span class="text-xs font-bold text-brand-700 dark:text-brand-300">03</span>
-              <strong class="mt-2 block">Resolver variantes</strong>
-              <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">md, hover, dark</span>
-            </li>
-            <li class="rounded-md bg-white p-4 shadow-sm dark:bg-slate-900">
-              <span class="text-xs font-bold text-brand-700 dark:text-brand-300">04</span>
-              <strong class="mt-2 block">Emitir CSS</strong>
-              <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">@layer ordenado</span>
-            </li>
-            <li class="rounded-md bg-white p-4 shadow-sm dark:bg-slate-900">
-              <span class="text-xs font-bold text-brand-700 dark:text-brand-300">05</span>
-              <strong class="mt-2 block">Cachear</strong>
-              <span class="mt-1 block text-sm text-slate-500 dark:text-slate-400">incrementales rapidos</span>
-            </li>
+            <li class="pipeline-step"><span class="text-xs font-bold text-brand-700 dark:text-brand-300">01</span><strong class="mt-2 block">Detectar fuentes</strong><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">HTML, JS, TSX, MDX</span></li>
+            <li class="pipeline-step"><span class="text-xs font-bold text-brand-700 dark:text-brand-300">02</span><strong class="mt-2 block">Extraer tokens</strong><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">clases completas</span></li>
+            <li class="pipeline-step"><span class="text-xs font-bold text-brand-700 dark:text-brand-300">03</span><strong class="mt-2 block">Resolver variantes</strong><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">md, hover, dark</span></li>
+            <li class="pipeline-step"><span class="text-xs font-bold text-brand-700 dark:text-brand-300">04</span><strong class="mt-2 block">Emitir CSS</strong><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">@layer ordenado</span></li>
+            <li class="pipeline-step"><span class="text-xs font-bold text-brand-700 dark:text-brand-300">05</span><strong class="mt-2 block">Cachear</strong><span class="mt-1 block text-sm text-slate-600 dark:text-slate-300">incrementales rapidos</span></li>
           </ol>
         </figure>
 
-        <pre class="mt-6 overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-slate-100"><code>// Fragil: Tailwind no ve clases completas
+        <pre class="code-block mt-6"><code>// Fragil: Tailwind no ve clases completas
 const klass = `text-${tone}-600`;
 
 // Robusto: las clases existen como strings completos
 const tones = {
-  success: "text-emerald-600 bg-emerald-50",
-  risk: "text-rose-600 bg-rose-50",
+  success: "text-emerald-700 bg-emerald-100",
+  risk: "text-rose-700 bg-rose-100",
 };</code></pre>
       </article>
 
-      <!-- Slide 5 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="4" aria-labelledby="slide-5-title">
+      <article class="deck-slide" data-slide="4" data-state="inactive" aria-labelledby="slide-5-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Performance</p>
-          <h2 id="slide-5-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">v4 mueve Tailwind de rapido a casi invisible</h2>
-          <p class="mt-3 text-slate-600 dark:text-slate-300">Benchmark oficial sobre Catalyst: el mayor salto aparece en builds incrementales donde no se genera CSS nuevo.</p>
+          <p class="slide-kicker">Performance</p>
+          <h2 id="slide-5-title" class="slide-title">v4 mueve Tailwind de rapido a casi invisible</h2>
+          <p class="slide-copy">El salto relevante aparece en builds incrementales: la herramienta deja de sentirse como un paso de espera.</p>
         </header>
 
         <section class="mt-8 grid gap-4 md:grid-cols-3" aria-label="Metricas de build">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Full build</h3>
+          <article class="surface-card-muted">
+            <h3 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Full build</h3>
             <p class="mt-3 text-4xl font-black">100ms</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">desde 378ms en v3.4</p>
-            <span class="mt-4 block h-2 rounded-full bg-stone-200 dark:bg-slate-800"><span class="block h-2 w-[74%] rounded-full bg-brand-500"></span></span>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">desde 378ms en v3.4</p>
+            <span class="progress-track"><span class="progress-value w-[74%] bg-brand-500"></span></span>
           </article>
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Incremental con CSS nuevo</h3>
+          <article class="surface-card-muted">
+            <h3 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Incremental con CSS nuevo</h3>
             <p class="mt-3 text-4xl font-black">5ms</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">desde 44ms en v3.4</p>
-            <span class="mt-4 block h-2 rounded-full bg-stone-200 dark:bg-slate-800"><span class="block h-2 w-[89%] rounded-full bg-emerald-500"></span></span>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">desde 44ms en v3.4</p>
+            <span class="progress-track"><span class="progress-value w-[89%] bg-success-500"></span></span>
           </article>
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="text-sm font-semibold text-slate-500 dark:text-slate-400">Incremental sin CSS nuevo</h3>
+          <article class="surface-card-muted">
+            <h3 class="text-sm font-semibold text-slate-600 dark:text-slate-300">Incremental sin CSS nuevo</h3>
             <p class="mt-3 text-4xl font-black">192us</p>
-            <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">desde 35ms en v3.4</p>
-            <span class="mt-4 block h-2 rounded-full bg-stone-200 dark:bg-slate-800"><span class="block h-2 w-[99%] rounded-full bg-amber-400"></span></span>
+            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">desde 35ms en v3.4</p>
+            <span class="progress-track"><span class="progress-value w-[99%] bg-amber-500"></span></span>
           </article>
         </section>
       </article>
 
-      <!-- Slide 6 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="5" aria-labelledby="slide-6-title">
+      <article class="deck-slide" data-slide="5" data-state="inactive" aria-labelledby="slide-6-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Bundle final</p>
-          <h2 id="slide-6-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">La optimizacion importante es generar menos CSS</h2>
+          <p class="slide-kicker">Produccion</p>
+          <h2 id="slide-6-title" class="slide-title">La pregunta no es cuantas clases escribimos, sino cuanto CSS enviamos</h2>
+          <p class="slide-copy">Tailwind escanea fuentes, genera utilidades usadas y permite que el resultado final sea cacheable, minificado y pequeno.</p>
         </header>
 
-        <section class="mt-8 grid gap-6 lg:grid-cols-[0.9fr_1.1fr]" aria-label="Bundle y compresion">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="text-xl font-bold">Estimacion realista</h3>
-            <dl class="mt-5 grid gap-3">
-              <dt class="text-sm font-medium text-slate-500 dark:text-slate-400">Dashboard medio</dt>
-              <dd class="text-2xl font-black">25-45 KB min</dd>
-              <dt class="text-sm font-medium text-slate-500 dark:text-slate-400">Gzip aproximado</dt>
-              <dd class="text-2xl font-black">6-12 KB</dd>
-              <dt class="text-sm font-medium text-slate-500 dark:text-slate-400">App grande</dt>
-              <dd class="text-2xl font-black">50-100 KB min</dd>
+        <section class="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]" aria-label="Bundle final y purga">
+          <article class="surface-card-muted">
+            <h3 class="text-xl font-bold">Checklist de build</h3>
+            <ul class="mt-5 space-y-3 leading-7">
+              <li>Definir fuentes con `@source` para que el escaneo sea explicito.</li>
+              <li>Evitar strings dinamicos como `bg-${color}-500`.</li>
+              <li>Minificar `dist/styles.css` antes de entregar.</li>
+              <li>Revisar clases arbitrarias repetidas y convertirlas en tokens.</li>
+            </ul>
+          </article>
+          <figure class="dark-panel">
+            <figcaption class="text-sm font-semibold text-brand-100">CSS final esperado en apps medianas</figcaption>
+            <dl class="mt-6 grid gap-4 sm:grid-cols-3">
+              <dt class="sr-only">CSS minificado</dt>
+              <dd class="rounded-md bg-white/10 p-4"><strong class="block text-3xl">25-45KB</strong><span class="text-sm text-slate-300">minificado</span></dd>
+              <dt class="sr-only">CSS gzip</dt>
+              <dd class="rounded-md bg-white/10 p-4"><strong class="block text-3xl">6-12KB</strong><span class="text-sm text-slate-300">gzip estimado</span></dd>
+              <dt class="sr-only">Especificidad</dt>
+              <dd class="rounded-md bg-white/10 p-4"><strong class="block text-3xl">0-1-0</strong><span class="text-sm text-slate-300">selector plano</span></dd>
             </dl>
-          </article>
-
-          <article class="rounded-lg border border-stone-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
-            <h3 class="text-xl font-bold">Ordenamiento y gzip</h3>
-            <ul class="mt-5 grid gap-3">
-              <li class="rounded-md bg-stone-50 p-3 dark:bg-slate-950/70">Ordenar clases mejora diffs, revisiones y consistencia cognitiva.</li>
-              <li class="rounded-md bg-stone-50 p-3 dark:bg-slate-950/70">Gzip aprovecha repeticion; patrones consistentes ayudan marginalmente.</li>
-              <li class="rounded-md bg-stone-50 p-3 dark:bg-slate-950/70">La gran victoria sigue siendo el purgado por deteccion de clases usadas.</li>
-            </ul>
-          </article>
+          </figure>
         </section>
       </article>
 
-      <!-- Slide 7 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="6" aria-labelledby="slide-7-title">
+      <article class="deck-slide" data-slide="6" data-state="inactive" aria-labelledby="slide-7-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Configuracion avanzada</p>
-          <h2 id="slide-7-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Extender, sobrescribir y nombrar tokens</h2>
+          <p class="slide-kicker">Configuracion avanzada</p>
+          <h2 id="slide-7-title" class="slide-title">De `tailwind.config.js` a CSS-first</h2>
+          <p class="slide-copy">Tailwind v4 acerca la configuracion al lenguaje CSS con `@theme`, `@custom-variant`, `@utility` y `@source`.</p>
         </header>
 
-        <section class="mt-8 grid gap-4 lg:grid-cols-2" aria-label="Configuracion Tailwind">
-          <article class="rounded-lg border border-stone-200 bg-slate-950 p-5 text-slate-100 dark:border-slate-700">
-            <h3 class="font-semibold text-brand-100">v3: tailwind.config.js</h3>
-            <pre class="mt-4 overflow-x-auto text-sm"><code>export default {
-  content: ["./src/**/*.{ts,tsx,html}"],
-  theme: {
-    extend: {
-      colors: {
-        brand: { 500: "#06b6d4" }
-      }
-    }
-  }
-};</code></pre>
+        <section class="mt-8 grid gap-4 lg:grid-cols-2" aria-label="Configuracion CSS-first">
+          <article class="surface-card-muted">
+            <h3 class="text-xl font-bold">Tokens por intencion</h3>
+            <p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Nombres como brand, success, risk y focus explican una decision del sistema, no una pantalla temporal.</p>
+            <pre class="code-block mt-5"><code>@theme {
+  --color-brand-700: #155e75;
+  --color-risk-700: #be123c;
+  --shadow-panel: 0 18px 50px -30px rgb(15 23 42 / .45);
+}</code></pre>
           </article>
-
-          <article class="rounded-lg border border-stone-200 bg-slate-950 p-5 text-slate-100 dark:border-slate-700">
-            <h3 class="font-semibold text-brand-100">v4: CSS-first</h3>
-            <pre class="mt-4 overflow-x-auto text-sm"><code>@theme {
-  --color-brand-500: #06b6d4;
-  --breakpoint-3xl: 120rem;
-}
-
-@custom-variant dark (&amp;:where(.dark, .dark *));</code></pre>
+          <article class="surface-card-muted">
+            <h3 class="text-xl font-bold">Variantes como contrato</h3>
+            <p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">La variante dark depende de una clase en el root. JavaScript cambia estado; CSS decide como se ve.</p>
+            <pre class="code-block mt-5"><code>@custom-variant dark (&:where(.dark, .dark *));</code></pre>
           </article>
         </section>
-
-        <aside class="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-100">
-          <strong>Regla senior:</strong> usa `extend` para sumar a la escala; sobrescribe solo cuando el design system controla la escala completa.
-        </aside>
       </article>
 
-      <!-- Slide 8 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="7" aria-labelledby="slide-8-title">
+      <article class="deck-slide" data-slide="7" data-state="inactive" aria-labelledby="slide-8-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Plugins</p>
-          <h2 id="slide-8-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Plugins como extension del lenguaje visual</h2>
+          <p class="slide-kicker">Plugins y extensiones</p>
+          <h2 id="slide-8-title" class="slide-title">Extender Tailwind sin inventar otro framework</h2>
+          <p class="slide-copy">Un plugin debe capturar reglas compartidas del equipo. Si exige demasiada explicacion, probablemente es magia nueva.</p>
         </header>
 
-        <section class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="Tipos de plugin">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="font-bold">addUtilities</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Clases estaticas, bajo riesgo.</p>
-          </article>
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="font-bold">matchUtilities</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Valores dinamicos ligados al tema.</p>
-          </article>
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="font-bold">addComponents</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Primitivos repetidos, no frameworks enteros.</p>
-          </article>
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-4 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="font-bold">matchVariant</h3>
-            <p class="mt-2 text-sm text-slate-600 dark:text-slate-300">Estados parametrizados por contexto.</p>
-          </article>
+        <section class="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-4" aria-label="API de plugins">
+          <article class="surface-card-muted"><h3 class="text-lg font-bold">addUtilities</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Utilidades estaticas cuando el lenguaje visual necesita una primitiva repetible.</p></article>
+          <article class="surface-card-muted"><h3 class="text-lg font-bold">matchUtilities</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Utilidades dinamicas conectadas a valores del tema.</p></article>
+          <article class="surface-card-muted"><h3 class="text-lg font-bold">addComponents</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Componentes base con cuidado para no ocultar decisiones importantes.</p></article>
+          <article class="surface-card-muted"><h3 class="text-lg font-bold">matchVariant</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Variantes parametrizadas para estados o atributos del dominio.</p></article>
         </section>
-
-        <pre class="mt-6 overflow-x-auto rounded-lg bg-slate-950 p-4 text-sm text-slate-100"><code>plugin(({ matchUtilities, theme }) =&gt; {
-  matchUtilities(
-    { "scroll-mt-header": value =&gt; ({ scrollMarginTop: value }) },
-    { values: theme("spacing") }
-  );
-});</code></pre>
       </article>
 
-      <!-- Slide 9 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="8" aria-labelledby="slide-9-title">
+      <article class="deck-slide" data-slide="8" data-state="inactive" aria-labelledby="slide-9-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Accesibilidad</p>
-          <h2 id="slide-9-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Tailwind facilita estados accesibles, pero no reemplaza semantica</h2>
+          <p class="slide-kicker">WCAG 2.2 AAA</p>
+          <h2 id="slide-9-title" class="slide-title">Tailwind ayuda a expresar estados, pero la semantica empieza en HTML</h2>
+          <p class="slide-copy">Botones, formularios, tablas, tabs y dialogos mantienen roles nativos o ARIA correcto. Las utilidades hacen visible cada estado.</p>
         </header>
 
-        <section class="mt-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr]" aria-label="Variantes accesibles">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
-            <h3 class="text-xl font-bold">Variantes clave</h3>
-            <ul class="mt-5 flex flex-wrap gap-2">
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">focus-visible:ring-4</li>
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">focus-within:*</li>
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">motion-safe:*</li>
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">aria-selected:*</li>
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">data-[state=open]:*</li>
-              <li class="rounded-md bg-white px-3 py-2 text-sm font-semibold shadow-sm dark:bg-slate-900">peer-checked:*</li>
-            </ul>
-          </article>
-
-          <article class="rounded-lg border border-stone-200 bg-slate-950 p-5 text-slate-100 dark:border-slate-700">
-            <h3 class="font-semibold text-brand-100">Ejemplo de tab accesible</h3>
-            <pre class="mt-4 overflow-x-auto text-sm"><code>&lt;button
-  role="tab"
-  aria-selected="true"
-  class="focus-visible:ring-4
-         aria-selected:bg-slate-950"&gt;
-  Vision general
-&lt;/button&gt;</code></pre>
-          </article>
+        <section class="mt-8 grid gap-4 lg:grid-cols-3" aria-label="Patrones de accesibilidad">
+          <article class="surface-card-muted"><h3 class="text-xl font-bold">Foco visible</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">El foco se define en `@layer base` para que todo control tenga un anillo de alto contraste.</p></article>
+          <article class="surface-card-muted"><h3 class="text-xl font-bold">Estado semantico</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Tabs usan `role`, `aria-selected`, roving tabindex y paneles enlazados.</p></article>
+          <article class="surface-card-muted"><h3 class="text-xl font-bold">Movimiento responsable</h3><p class="mt-3 leading-7 text-slate-700 dark:text-slate-300">Las animaciones respetan `prefers-reduced-motion` desde la capa base.</p></article>
         </section>
       </article>
 
-      <!-- Slide 10 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="9" aria-labelledby="slide-10-title">
+      <article class="deck-slide" data-slide="9" data-state="inactive" aria-labelledby="slide-10-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Patrones senior</p>
-          <h2 id="slide-10-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">La arquitectura vive en componentes, contratos y tokens</h2>
+          <p class="slide-kicker">Patrones senior</p>
+          <h2 id="slide-10-title" class="slide-title">Reglas simples para que Tailwind escale</h2>
+          <p class="slide-copy">La herramienta es rapida; la diferencia profesional esta en contratos, tokens y revision consistente.</p>
         </header>
 
         <section class="mt-8 grid gap-4 md:grid-cols-2" aria-label="Reglas de adopcion">
-          <article class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/30 dark:bg-emerald-500/10">
-            <h3 class="text-xl font-bold text-emerald-800 dark:text-emerald-100">Hacer</h3>
-            <ul class="mt-4 space-y-3">
+          <article class="rounded-lg border border-emerald-200 bg-emerald-50 p-5 dark:border-emerald-500/40 dark:bg-emerald-500/10">
+            <h3 class="text-xl font-bold text-emerald-900 dark:text-emerald-100">Hacer</h3>
+            <ul class="mt-4 space-y-3 leading-7 text-slate-800 dark:text-slate-200">
               <li>Mapear variantes a strings completos.</li>
               <li>Extraer componentes cuando hay intencion estable.</li>
               <li>Nombrar tokens por dominio: brand, surface, risk.</li>
               <li>Medir contraste y foco con teclado.</li>
             </ul>
           </article>
-          <article class="rounded-lg border border-rose-200 bg-rose-50 p-5 dark:border-rose-500/30 dark:bg-rose-500/10">
-            <h3 class="text-xl font-bold text-rose-800 dark:text-rose-100">Evitar</h3>
-            <ul class="mt-4 space-y-3">
+          <article class="rounded-lg border border-rose-200 bg-rose-50 p-5 dark:border-rose-500/40 dark:bg-rose-500/10">
+            <h3 class="text-xl font-bold text-risk-700 dark:text-rose-100">Evitar</h3>
+            <ul class="mt-4 space-y-3 leading-7 text-slate-800 dark:text-slate-200">
               <li>Interpolar fragmentos de clases.</li>
               <li>Convertir valores arbitrarios en norma.</li>
               <li>Usar el CDN en produccion.</li>
@@ -434,28 +322,27 @@ const tones = {
         </section>
       </article>
 
-      <!-- Slide 11 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="10" aria-labelledby="slide-11-title">
+      <article class="deck-slide" data-slide="10" data-state="inactive" aria-labelledby="slide-11-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Demo guiada</p>
-          <h2 id="slide-11-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Dashboard de analiticas con modo claro/oscuro</h2>
-          <p class="mt-3 text-slate-600 dark:text-slate-300">La demo paralela muestra responsive design, dark mode, tabs, panel colapsable, group, peer, data attributes, clases arbitrarias y foco visible.</p>
+          <p class="slide-kicker">Demo guiada</p>
+          <h2 id="slide-11-title" class="slide-title">Dashboard de analiticas con modo claro/oscuro</h2>
+          <p class="slide-copy">La demo paralela muestra responsive design, dark mode, tabs, panel colapsable, group, peer, data attributes, clases arbitrarias y foco visible.</p>
         </header>
 
         <section class="mt-8 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]" aria-label="Guion de demo">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
+          <article class="surface-card-muted">
             <h3 class="text-xl font-bold">Recorrido sugerido</h3>
-            <ol class="mt-5 list-decimal space-y-3 pl-5">
+            <ol class="mt-5 list-decimal space-y-3 pl-5 leading-7">
               <li>Cambiar tema y explicar `.dark` en el root.</li>
               <li>Abrir filtros y explicar transiciones con clases.</li>
               <li>Mostrar `peer` en el toggle de bots.</li>
               <li>Cambiar tabs y revisar `aria-selected:*`.</li>
               <li>Reducir viewport para ver breakpoints.</li>
             </ol>
-            <a href="tailwind-analytics-dashboard-demo.html" class="mt-6 inline-flex rounded-md bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:bg-brand-500 dark:text-slate-950">Abrir dashboard</a>
+            <a class="button button-primary mt-6" href="./tailwind-analytics-dashboard-demo.html">Abrir dashboard</a>
           </article>
 
-          <figure class="rounded-lg border border-slate-200 bg-slate-950 p-5 text-slate-100 dark:border-slate-700">
+          <figure class="dark-panel">
             <figcaption class="text-sm font-semibold text-brand-100">Checklist tecnico visible en la demo</figcaption>
             <ul class="mt-5 grid gap-3 sm:grid-cols-2">
               <li class="rounded-md bg-white/10 p-3">sm / md / lg / xl</li>
@@ -469,18 +356,17 @@ const tones = {
         </section>
       </article>
 
-      <!-- Slide 12 -->
-      <article class="slide hidden min-h-[calc(100vh-11rem)] rounded-lg border border-stone-200 bg-white p-5 shadow-slide motion-safe:animate-[slideIn_260ms_ease-out] lg:p-8 dark:border-slate-800 dark:bg-slate-900" data-slide="11" aria-labelledby="slide-12-title">
+      <article class="deck-slide" data-slide="11" data-state="inactive" aria-labelledby="slide-12-title" tabindex="-1" hidden>
         <header class="max-w-3xl">
-          <p class="text-sm font-semibold uppercase tracking-normal text-brand-700 dark:text-brand-300">Cierre</p>
-          <h2 id="slide-12-title" class="mt-2 text-3xl font-black tracking-normal sm:text-4xl">Tailwind escala cuando se gobierna como sistema</h2>
-          <p class="mt-3 text-slate-600 dark:text-slate-300">La herramienta es rapida; la diferencia senior esta en tokens, accesibilidad, convenciones de componentes y revisiones de performance.</p>
+          <p class="slide-kicker">Cierre</p>
+          <h2 id="slide-12-title" class="slide-title">Tailwind escala cuando se gobierna como sistema</h2>
+          <p class="slide-copy">La diferencia senior esta en tokens, accesibilidad, convenciones de componentes y revisiones de performance.</p>
         </header>
 
         <section class="mt-8 grid gap-4 lg:grid-cols-2" aria-label="Conclusiones y referencias">
-          <article class="rounded-lg border border-stone-200 bg-stone-50 p-5 dark:border-slate-800 dark:bg-slate-950/70">
+          <article class="surface-card-muted">
             <h3 class="text-xl font-bold">Takeaways</h3>
-            <ul class="mt-5 space-y-3">
+            <ul class="mt-5 space-y-3 leading-7">
               <li>Utility-first reduce CSS muerto y especificidad accidental.</li>
               <li>JIT convierte clases usadas en CSS estatico.</li>
               <li>v4 acelera builds con motor y configuracion CSS-first.</li>
@@ -488,223 +374,54 @@ const tones = {
             </ul>
           </article>
 
-          <article class="rounded-lg border border-stone-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900">
+          <article class="surface-card">
             <h3 class="text-xl font-bold">Referencias oficiales</h3>
             <ul class="mt-5 space-y-3 text-brand-700 dark:text-brand-100">
-              <li><a class="underline decoration-brand-300 underline-offset-4" href="https://tailwindcss.com/blog/tailwindcss-v4">Tailwind CSS v4 release</a></li>
-              <li><a class="underline decoration-brand-300 underline-offset-4" href="https://tailwindcss.com/docs/detecting-classes-in-source-files">Detecting classes in source files</a></li>
-              <li><a class="underline decoration-brand-300 underline-offset-4" href="https://tailwindcss.com/docs/hover-focus-and-other-states">Hover, focus and other states</a></li>
-              <li><a class="underline decoration-brand-300 underline-offset-4" href="https://tailwindcss.com/docs/dark-mode">Dark mode</a></li>
+              <li><a class="underline decoration-brand-300" href="https://tailwindcss.com/blog/tailwindcss-v4">Tailwind CSS v4 release</a></li>
+              <li><a class="underline decoration-brand-300" href="https://tailwindcss.com/docs/detecting-classes-in-source-files">Detecting classes in source files</a></li>
+              <li><a class="underline decoration-brand-300" href="https://tailwindcss.com/docs/hover-focus-and-other-states">Hover, focus and other states</a></li>
+              <li><a class="underline decoration-brand-300" href="https://tailwindcss.com/docs/dark-mode">Dark mode</a></li>
             </ul>
           </article>
         </section>
       </article>
     </main>
 
-    <aside id="speakerNotes" class="fixed inset-x-4 bottom-20 z-50 hidden max-h-64 overflow-y-auto rounded-lg border border-stone-200 bg-white p-4 shadow-slide sm:inset-x-auto sm:right-6 sm:w-[420px] dark:border-slate-700 dark:bg-slate-900" aria-label="Notas del orador">
-      <article class="note" data-note="0">
-        <h2 class="font-bold">Notas: tesis</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Abrir con la idea de API de diseno compilada. Tailwind no es ausencia de arquitectura; es arquitectura expresada en tokens y componentes.</p>
-      </article>
-      <article class="note hidden" data-note="1">
-        <h2 class="font-bold">Notas: comparativa</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">No vender Tailwind como bala de plata. Mostrar que cada enfoque paga costos distintos.</p>
-      </article>
-      <article class="note hidden" data-note="2">
-        <h2 class="font-bold">Notas: dolores</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Conectar con experiencia real de equipos: miedo a borrar CSS, overrides crecientes y clases semanticas que ya no describen nada.</p>
-      </article>
-      <article class="note hidden" data-note="3">
-        <h2 class="font-bold">Notas: JIT</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Enfatizar que las clases deben existir como strings completos. Esto explica muchos bugs de produccion.</p>
-      </article>
-      <article class="note hidden" data-note="4">
-        <h2 class="font-bold">Notas: performance</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Los numeros son de benchmark oficial. El cambio relevante para DX es el incremental casi instantaneo.</p>
-      </article>
-      <article class="note hidden" data-note="5">
-        <h2 class="font-bold">Notas: bundle</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Aclarar que las cifras de bundle son estimaciones. El tamano real depende de tokens, plugins y patrones de uso.</p>
-      </article>
-      <article class="note hidden" data-note="6">
-        <h2 class="font-bold">Notas: configuracion</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Explicar `extend` contra sobrescritura y marcar el cambio de mentalidad en v4 hacia CSS-first.</p>
-      </article>
-      <article class="note hidden" data-note="7">
-        <h2 class="font-bold">Notas: plugins</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Plugin solo cuando captura una regla compartida. Si requiere explicar mucho, probablemente es demasiado magico.</p>
-      </article>
-      <article class="note hidden" data-note="8">
-        <h2 class="font-bold">Notas: a11y</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Tailwind ayuda a expresar estados, pero HTML semantico y contraste siguen siendo responsabilidad del equipo.</p>
-      </article>
-      <article class="note hidden" data-note="9">
-        <h2 class="font-bold">Notas: patrones</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Esta slide es para convertir la charla en criterios de PR y convenciones de equipo.</p>
-      </article>
-      <article class="note hidden" data-note="10">
-        <h2 class="font-bold">Notas: demo</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Usar el dashboard para aterrizar cada concepto: estado, responsive, dark mode, accesibilidad y clases arbitrarias.</p>
-      </article>
-      <article class="note hidden" data-note="11">
-        <h2 class="font-bold">Notas: cierre</h2>
-        <p class="mt-2 text-sm leading-6 text-slate-600 dark:text-slate-300">Cerrar con la idea de gobierno: Tailwind escala si los componentes y tokens tienen duenos claros.</p>
-      </article>
+    <aside id="speakerNotes" class="speaker-notes" data-speaker-notes role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="speaker-notes-title" hidden>
+      <header class="speaker-notes-header">
+        <h2 id="speaker-notes-title" class="text-base font-bold">Notas del orador</h2>
+        <button class="button button-secondary" type="button" data-action="close-notes">Cerrar</button>
+      </header>
+      <section class="speaker-notes-body" aria-label="Notas sincronizadas con la diapositiva activa">
+        <article class="note" data-note="0"><h3 class="font-bold">Tesis</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Abrir con la idea de API de diseno compilada. Tailwind no es ausencia de arquitectura; es arquitectura expresada en tokens y componentes.</p></article>
+        <article class="note" data-note="1" hidden><h3 class="font-bold">Comparativa</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">No vender Tailwind como bala de plata. Mostrar que cada enfoque paga costos distintos.</p></article>
+        <article class="note" data-note="2" hidden><h3 class="font-bold">Dolores</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Conectar con miedo a borrar CSS, overrides crecientes y clases semanticas que ya no describen nada.</p></article>
+        <article class="note" data-note="3" hidden><h3 class="font-bold">JIT</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Enfatizar que las clases deben existir como strings completos. Esto explica muchos bugs de produccion.</p></article>
+        <article class="note" data-note="4" hidden><h3 class="font-bold">Performance</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Los numeros vienen de benchmarks oficiales; lo importante para DX es el incremental casi instantaneo.</p></article>
+        <article class="note" data-note="5" hidden><h3 class="font-bold">Bundle</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Aclarar que las cifras son estimaciones y dependen de tokens, plugins y patrones de uso.</p></article>
+        <article class="note" data-note="6" hidden><h3 class="font-bold">Configuracion</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Marcar el cambio de mentalidad en v4 hacia CSS-first y tokens como contrato.</p></article>
+        <article class="note" data-note="7" hidden><h3 class="font-bold">Plugins</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Plugin solo cuando captura una regla compartida. Si requiere explicar mucho, probablemente es demasiado magico.</p></article>
+        <article class="note" data-note="8" hidden><h3 class="font-bold">A11y</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Tailwind expresa estados; HTML semantico y contraste siguen siendo responsabilidad del equipo.</p></article>
+        <article class="note" data-note="9" hidden><h3 class="font-bold">Patrones</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Convertir la charla en criterios de PR y convenciones de equipo.</p></article>
+        <article class="note" data-note="10" hidden><h3 class="font-bold">Demo</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Usar el dashboard para aterrizar estado, responsive, dark mode, accesibilidad y clases arbitrarias.</p></article>
+        <article class="note" data-note="11" hidden><h3 class="font-bold">Cierre</h3><p class="mt-2 text-sm leading-6 text-slate-700 dark:text-slate-300">Cerrar con gobierno: Tailwind escala si los componentes y tokens tienen duenos claros.</p></article>
+      </section>
     </aside>
 
-    <footer class="sticky bottom-0 z-40 border-t border-stone-200 bg-stone-50/92 px-4 py-3 supports-[backdrop-filter:blur(0px)]:backdrop-blur-xl sm:px-6 lg:px-8 dark:border-slate-800 dark:bg-slate-950/90">
+    <footer class="deck-footer">
       <nav class="mx-auto flex max-w-7xl flex-col gap-3 md:flex-row md:items-center md:justify-between" aria-label="Navegacion de diapositivas">
         <ul class="flex items-center gap-2">
-          <li><button id="prevSlide" type="button" class="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-medium transition-all duration-300 hover:bg-stone-100 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:border-slate-700 dark:bg-slate-900 dark:hover:bg-slate-800 dark:focus-visible:ring-brand-700/40">Anterior</button></li>
-          <li><button id="nextSlide" type="button" class="rounded-md bg-ink-950 px-3 py-2 text-sm font-semibold text-white transition-all duration-300 hover:scale-105 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-brand-100 active:scale-[0.98] dark:bg-brand-500 dark:text-slate-950 dark:focus-visible:ring-brand-700/40">Siguiente</button></li>
+          <li><button class="button button-secondary" type="button" data-action="previous-slide">Anterior</button></li>
+          <li><button class="button button-primary" type="button" data-action="next-slide">Siguiente</button></li>
         </ul>
 
-        <ol class="flex flex-wrap items-center gap-1" aria-label="Ir a diapositiva">
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="0" data-active="true" aria-label="Diapositiva 1" aria-current="step"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="1" data-active="false" aria-label="Diapositiva 2"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="2" data-active="false" aria-label="Diapositiva 3"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="3" data-active="false" aria-label="Diapositiva 4"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="4" data-active="false" aria-label="Diapositiva 5"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="5" data-active="false" aria-label="Diapositiva 6"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="6" data-active="false" aria-label="Diapositiva 7"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="7" data-active="false" aria-label="Diapositiva 8"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="8" data-active="false" aria-label="Diapositiva 9"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="9" data-active="false" aria-label="Diapositiva 10"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="10" data-active="false" aria-label="Diapositiva 11"></button></li>
-          <li><button class="h-3 w-7 rounded-full bg-stone-300 transition-all duration-300 data-[active=true]:bg-brand-600 dark:bg-slate-700 dark:data-[active=true]:bg-brand-400" type="button" data-jump="11" data-active="false" aria-label="Diapositiva 12"></button></li>
-        </ol>
+        <ol class="flex flex-wrap items-center gap-1" data-slide-dots aria-label="Ir a diapositiva"></ol>
 
-        <p class="text-sm font-medium text-slate-500 dark:text-slate-400">
-          <output id="slideCounter">1 / 12</output>
-          <span class="ml-2 hidden sm:inline">Flechas, Home, End, N notas, D tema, F pantalla completa</span>
+        <p class="text-sm font-semibold text-slate-600 dark:text-slate-300">
+          <output data-slide-counter aria-live="polite">1 / 12</output>
         </p>
+        <p class="sr-only" data-app-status aria-live="polite"></p>
       </nav>
     </footer>
-
-    <script>
-      const root = document.documentElement;
-      const slides = Array.from(document.querySelectorAll(".slide"));
-      const notes = Array.from(document.querySelectorAll(".note"));
-      const jumpButtons = Array.from(document.querySelectorAll("[data-jump]"));
-      const prevSlide = document.querySelector("#prevSlide");
-      const nextSlide = document.querySelector("#nextSlide");
-      const slideCounter = document.querySelector("#slideCounter");
-      const notesToggle = document.querySelector("#notesToggle");
-      const speakerNotes = document.querySelector("#speakerNotes");
-      const themeToggle = document.querySelector("#themeToggle");
-      const fullscreenToggle = document.querySelector("#fullscreenToggle");
-      let currentSlide = 0;
-
-      function showSlide(index) {
-        currentSlide = (index + slides.length) % slides.length;
-
-        slides.forEach((slide, slideIndex) => {
-          const isActive = slideIndex === currentSlide;
-          slide.classList.toggle("hidden", !isActive);
-          slide.setAttribute("aria-hidden", String(!isActive));
-        });
-
-        notes.forEach((note, noteIndex) => {
-          note.classList.toggle("hidden", noteIndex !== currentSlide);
-        });
-
-        jumpButtons.forEach((button, buttonIndex) => {
-          const isActive = buttonIndex === currentSlide;
-          button.dataset.active = String(isActive);
-          if (isActive) {
-            button.setAttribute("aria-current", "step");
-          } else {
-            button.removeAttribute("aria-current");
-          }
-        });
-
-        slideCounter.textContent = `${currentSlide + 1} / ${slides.length}`;
-      }
-
-      prevSlide.addEventListener("click", () => showSlide(currentSlide - 1));
-      nextSlide.addEventListener("click", () => showSlide(currentSlide + 1));
-
-      jumpButtons.forEach((button) => {
-        button.addEventListener("click", () => {
-          showSlide(Number(button.dataset.jump));
-        });
-      });
-
-      notesToggle.addEventListener("click", () => {
-        const isOpen = !speakerNotes.classList.contains("hidden");
-        speakerNotes.classList.toggle("hidden", isOpen);
-        notesToggle.setAttribute("aria-pressed", String(!isOpen));
-      });
-
-      themeToggle.addEventListener("click", () => {
-        const nextIsDark = !root.classList.contains("dark");
-        root.classList.toggle("dark", nextIsDark);
-        localStorage.setItem("tw-deck-theme", nextIsDark ? "dark" : "light");
-      });
-
-      function syncFullscreenButton() {
-        const isFullscreen = Boolean(document.fullscreenElement);
-        fullscreenToggle.textContent = isFullscreen ? "Salir pantalla" : "Pantalla completa";
-        fullscreenToggle.setAttribute("aria-pressed", String(isFullscreen));
-        fullscreenToggle.setAttribute("aria-label", isFullscreen ? "Salir de pantalla completa" : "Entrar en pantalla completa");
-      }
-
-      if (!document.fullscreenEnabled || !root.requestFullscreen) {
-        fullscreenToggle.disabled = true;
-        fullscreenToggle.textContent = "No disponible";
-        fullscreenToggle.setAttribute("aria-label", "Pantalla completa no disponible en este navegador");
-      }
-
-      fullscreenToggle.addEventListener("click", async () => {
-        if (fullscreenToggle.disabled) return;
-
-        try {
-          if (document.fullscreenElement) {
-            await document.exitFullscreen();
-          } else {
-            await root.requestFullscreen();
-          }
-        } catch (error) {
-          console.warn("No se pudo cambiar el modo pantalla completa", error);
-        }
-      });
-
-      document.addEventListener("fullscreenchange", syncFullscreenButton);
-
-      document.addEventListener("keydown", (event) => {
-        const target = event.target;
-        const isTyping = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement;
-        if (isTyping) return;
-
-        if (event.key === "ArrowRight" || event.key === " ") {
-          event.preventDefault();
-          showSlide(currentSlide + 1);
-        }
-        if (event.key === "ArrowLeft") {
-          event.preventDefault();
-          showSlide(currentSlide - 1);
-        }
-        if (event.key === "Home") {
-          event.preventDefault();
-          showSlide(0);
-        }
-        if (event.key === "End") {
-          event.preventDefault();
-          showSlide(slides.length - 1);
-        }
-        if (event.key.toLowerCase() === "n") {
-          notesToggle.click();
-        }
-        if (event.key.toLowerCase() === "d") {
-          themeToggle.click();
-        }
-        if (event.key.toLowerCase() === "f") {
-          fullscreenToggle.click();
-        }
-      });
-
-      syncFullscreenButton();
-      showSlide(0);
-    </script>
   </body>
 </html>
